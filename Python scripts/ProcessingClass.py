@@ -21,9 +21,29 @@ class Measurement:
         self.ZZplots = []
         self.currents_ZZ = []
         for file in os.listdir(self.folder_path):
-            if file.endswith(".csv"):
+            print(file)
+            if file.endswith('.csv'):
                 file_path = os.path.join(self.folder_path, file)
-                creation_time = datetime.fromtimestamp(os.path.getmtime(file_path))
+                
+                pattern = r"DateTimeKeyStart_(\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_\d{2})_DateTimeKeyEnd"
+                match_name_date = re.search(pattern, file)
+                if match_name_date:
+                    datetime_str = match_name_date.group(1)
+                    creation_time = datetime.strptime(datetime_str, "%Y_%m_%d_%H_%M_%S")
+                else:
+                    creation_time = datetime.fromtimestamp(os.path.getmtime(file_path))
+                    formatted_timestring = creation_time.strftime("%Y_%m_%d_%H_%M_%S")
+                    print(formatted_timestring)
+                    os.rename(file_path, os.path.join(self.folder_path, f"DateTimeKeyStart_{formatted_timestring}_DateTimeKeyEnd{file}"))
+                
+        for file in os.listdir(self.folder_path):
+            if file.endswith('.csv'):
+                file_path = os.path.join(self.folder_path, file)
+                pattern = r"DateTimeKeyStart_(\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_\d{2})_DateTimeKeyEnd"
+                match_name_date = re.search(pattern, file)
+                if match_name_date:
+                    datetime_str = match_name_date.group(1)
+                    creation_time = datetime.strptime(datetime_str, "%Y_%m_%d_%H_%M_%S")
                 if creation_time > self.start_time and creation_time < self.end_time:
                     if 'TRScan' in file and '_CP_' in file:
                         self.TRScans.append(pd.read_csv(file_path, names = ['time', 'potential', 'current']))
