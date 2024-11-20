@@ -54,20 +54,16 @@ class Measurement:
                         if TR_match1:
                             value = TR_match1.group(1)
                             self.currents_TR.append(float(value))
-                            print(value)
                         elif TR_match2:
                             value = TR_match2.group(1)
                             value = value.replace('..', '.')
                             self.currents_TR.append(float(value))
-                            print(value)
                         elif TR_match3:
                             value = TR_match3.group(1)
                             self.currents_TR.append(float(value))
-                            print(value)
                         elif TR_match4:
                             value = TR_match4.group(1)
                             self.currents_TR.append(float(value))
-                            print(value)
                         else:
                             self.missing.append(file)
                     if "EIS" in file and file.endswith("Acm2.csv"):
@@ -78,13 +74,13 @@ class Measurement:
                         match3 = re.search(r'_(\d+(\.\d+)?)A', file)
                         if match1:
                             value = match1.group(1)
-                            self.currents_ZZ.append(value)
+                            self.currents_ZZ.append(float(value))
                         elif match2:
                             value = match2.group(1)
-                            self.currents_ZZ.append(value)
+                            self.currents_ZZ.append(float(value))
                         elif match3:
                             value = match3.group(1)
-                            self.currents_ZZ.append(value)
+                            self.currents_ZZ.append(float(value))
                         else:
                             self.missing.append(file)
             self.vs = []
@@ -107,7 +103,7 @@ class Measurement:
                         res = max(res, 0)
                         self.rs.append(res)
                         break
-            self.rs = np.array(self.rs)/1000
+            self.rs = np.array(self.rs)
 
 
             self.VAC_dataframe = pd.DataFrame({'Potential':self.vs,
@@ -117,14 +113,16 @@ class Measurement:
             self.JR_dataframe = pd.DataFrame({'Resistance':self.rs,
                                                 'Current Density': self.currents_ZZ})
             self.JR_dataframe = self.JR_dataframe.groupby('Current Density', as_index=False)['Resistance'].mean()
-
-            self.__for_computation = pd.DataFrame(
+            
+            self.for_computation = pd.DataFrame(
                                                 {
-                                                'Potential':self.vs,
-                                                'Current Density VAC': self.currents_TR,
-                                                'Resistance':self.rs,
-                                                'Current Density JR': self.currents_ZZ
+                                                'Potential': self.VAC_dataframe['Potential'],
+                                                'Current Density VAC': self.VAC_dataframe['Current Density'],
+                                                'Resistance':self.JR_dataframe['Resistance'],
+                                                'Current Density JR': self.JR_dataframe['Current Density']
                                                 }
                                                 )
-            self.__for_computation = self.__for_computation['Current Density VAC' == 'Current Density VJR']
+            self.for_computation = self.for_computation[self.for_computation['Current Density VAC'] == self.for_computation['Current Density JR']]
+            self.for_computation['Overpotential'] = self.for_computation['Potential'] - 4*self.for_computation['Current Density JR']*self.for_computation['Resistance']
+            self.overpotential = list(self.for_computation['Overpotential'])
         
