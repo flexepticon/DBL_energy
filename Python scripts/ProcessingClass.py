@@ -32,7 +32,6 @@ class Measurement:
                 else:
                     creation_time = datetime.fromtimestamp(os.path.getmtime(file_path))
                     formatted_timestring = creation_time.strftime("%Y_%m_%d_%H_%M_%S")
-                    print(formatted_timestring)
                     os.rename(file_path, os.path.join(self.folder_path, f"DateTimeKeyStart_{formatted_timestring}_DateTimeKeyEnd{file}"))
                 
         for file in os.listdir(self.folder_path):
