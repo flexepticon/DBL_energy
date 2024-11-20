@@ -21,7 +21,6 @@ class Measurement:
         self.ZZplots = []
         self.currents_ZZ = []
         for file in os.listdir(self.folder_path):
-            print(file)
             if file.endswith('.csv'):
                 file_path = os.path.join(self.folder_path, file)
                 
