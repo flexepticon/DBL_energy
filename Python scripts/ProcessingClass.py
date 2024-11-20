@@ -20,6 +20,8 @@ class Measurement:
         self.TRScans = []
         self.ZZplots = []
         self.currents_ZZ = []
+        self.currents_TR = []
+        self.missing = []
         for file in os.listdir(self.folder_path):
             if file.endswith('.csv'):
                 file_path = os.path.join(self.folder_path, file)
@@ -43,8 +45,31 @@ class Measurement:
                     datetime_str = match_name_date.group(1)
                     creation_time = datetime.strptime(datetime_str, "%Y_%m_%d_%H_%M_%S")
                 if creation_time > self.start_time and creation_time < self.end_time:
-                    if 'TRScan' in file and '_CP_' in file:
+                    if 'TRScan' in file and 'CP' in file:
                         self.TRScans.append(pd.read_csv(file_path, names = ['time', 'potential', 'current']))
+                        TR_match1 = re.search(r' (\d+(\.\d+)?)A', file)
+                        TR_match2 = re.search(r'_(\d+(\.\.\d+)?)A', file)
+                        TR_match3 = re.search(r'_(\d+(\.\d+)?)A', file)
+                        TR_match4 = re.search(r' (\d+(\.\d+)?) A', file)
+                        if TR_match1:
+                            value = TR_match1.group(1)
+                            self.currents_TR.append(float(value))
+                            print(value)
+                        elif TR_match2:
+                            value = TR_match2.group(1)
+                            value = value.replace('..', '.')
+                            self.currents_TR.append(float(value))
+                            print(value)
+                        elif TR_match3:
+                            value = TR_match3.group(1)
+                            self.currents_TR.append(float(value))
+                            print(value)
+                        elif TR_match4:
+                            value = TR_match4.group(1)
+                            self.currents_TR.append(float(value))
+                            print(value)
+                        else:
+                            self.missing.append(file)
                     if "EIS" in file and file.endswith("Acm2.csv"):
                         self.ZZplots.append(pd.read_csv(file_path, names = ['1', '2', '3']))
                         self.ZZplots[-1]['2'] *= -1
@@ -54,12 +79,14 @@ class Measurement:
                         if match1:
                             value = match1.group(1)
                             self.currents_ZZ.append(value)
-                        if match2:
+                        elif match2:
                             value = match2.group(1)
                             self.currents_ZZ.append(value)
-                        if match3:
+                        elif match3:
                             value = match3.group(1)
                             self.currents_ZZ.append(value)
+                        else:
+                            self.missing.append(file)
             self.vs = []
             self.js = []
             for trscan in self.TRScans:
@@ -69,7 +96,6 @@ class Measurement:
                 self.vs.append(V)
             self.js = np.array(self.js)
             self.vs = np.array(self.vs)
-            
             
             self.rs = []
             
@@ -81,5 +107,14 @@ class Measurement:
                         res = max(res, 0)
                         self.rs.append(res)
                         break
-            self.rs = np.array(self.rs)
+            self.rs = np.array(self.rs)/1000
+
+
+            self.VAC_dataframe = pd.DataFrame({'Potential':self.vs,
+                                                'Current Density': self.currents_TR})
+            self.VAC_dataframe = self.VAC_dataframe.groupby('Current Density', as_index=False)['Potential'].mean()
+            
+            self.JR_dataframe = pd.DataFrame({'Resistance':self.rs,
+                                                'Current Density': self.currents_ZZ})
+            self.JR_dataframe = self.JR_dataframe.groupby('Current Density', as_index=False)['Resistance'].mean()
         
