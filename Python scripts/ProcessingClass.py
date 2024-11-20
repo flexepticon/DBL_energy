@@ -117,4 +117,14 @@ class Measurement:
             self.JR_dataframe = pd.DataFrame({'Resistance':self.rs,
                                                 'Current Density': self.currents_ZZ})
             self.JR_dataframe = self.JR_dataframe.groupby('Current Density', as_index=False)['Resistance'].mean()
+
+            self.__for_computation = pd.DataFrame(
+                                                {
+                                                'Potential':self.vs,
+                                                'Current Density VAC': self.currents_TR,
+                                                'Resistance':self.rs,
+                                                'Current Density JR': self.currents_ZZ
+                                                }
+                                                )
+            self.__for_computation = self.__for_computation['Current Density VAC' == 'Current Density VJR']
         
