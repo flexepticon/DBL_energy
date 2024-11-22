@@ -169,16 +169,23 @@ class Measurement:
             # Process ZZ plots for resistance values
             self.rs = []  # List of resistances
             for zzplot in self.ZZplots:
+                missingr = True
                 for i in range(zzplot['Zr'].size-1):
                     # Find zero crossing of Zi to compute resistance
                     if zzplot['Zi'][i] * zzplot['Zi'][i + 1] < 0:
+                        missingr = False
                         pol = np.polyfit([zzplot['Zr'][i], zzplot['Zr'][i + 1]], [zzplot['Zi'][i], zzplot['Zi'][i + 1]], 1)
                         res = fsolve(lambda x: np.polyval(pol, x), [0])[0]
                         res = max(res, 1e-10)  # Ensure resistance is non-negative
                         self.rs.append(res)
+                        print(res)
                         break
-            self.rs = np.array(self.rs)
+                if missingr:
+                    self.rs.append(1e-10)
+                    break
 
+            self.rs = np.array(self.rs)
+            print(self.rs.size)
             # Create VAC DataFrame and group by current
             self.VAC_dataframe = pd.DataFrame({'V': self.vs, 'J': self.currents_TR})
             self.VAC_dataframe = self.VAC_dataframe.groupby('J', as_index=False)['V'].mean()
