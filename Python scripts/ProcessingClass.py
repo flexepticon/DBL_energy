@@ -178,14 +178,12 @@ class Measurement:
                         res = fsolve(lambda x: np.polyval(pol, x), [0])[0]
                         res = max(res, 1e-10)  # Ensure resistance is non-negative
                         self.rs.append(res)
-                        print(res)
                         break
                 if missingr:
                     self.rs.append(1e-10)
                     break
 
             self.rs = np.array(self.rs)
-            print(self.rs.size)
             # Create VAC DataFrame and group by current
             self.VAC_dataframe = pd.DataFrame({'V': self.vs, 'J': self.currents_TR})
             self.VAC_dataframe = self.VAC_dataframe.groupby('J', as_index=False)['V'].mean()
