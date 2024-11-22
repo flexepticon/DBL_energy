@@ -266,6 +266,6 @@ class Measurement:
                         file.write(';'.join(labels) + '\n')
                             
                         # Write each row, aligning elements from the VAC DataFrame columns
-                        for j_, v_ in zip(self.JR_dataframe['J'], self.overpotential):
-                            file.write(f"{j_};{v_}\n")
+                        for j_, v_ in zip(self.JR_dataframe['J'], self.overpotential ):
+                            file.write(f"{j_};{v_ + 1.23}\n")
             
