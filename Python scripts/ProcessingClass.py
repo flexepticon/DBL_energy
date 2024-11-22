@@ -182,7 +182,6 @@ class Measurement:
             # Create VAC DataFrame and group by current
             self.VAC_dataframe = pd.DataFrame({'V': self.vs, 'J': self.currents_TR})
             self.VAC_dataframe = self.VAC_dataframe.groupby('J', as_index=False)['V'].mean()
-            print(len(self.rs), '\n', len(self.currents_ZZ))
             # Create JR DataFrame and group by current
             self.JR_dataframe = pd.DataFrame({'R': self.rs, 'J': self.currents_ZZ})
             self.JR_dataframe = self.JR_dataframe.groupby('J', as_index=False)['R'].mean()
