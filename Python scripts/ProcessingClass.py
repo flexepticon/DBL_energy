@@ -106,15 +106,15 @@ class Measurement:
             self.rs = np.array(self.rs)
 
 
-            self.VAC_dataframe = pd.DataFrame({'Potential':self.vs,
+        self.VAC_dataframe = pd.DataFrame({'Potential':self.vs,
                                                 'Current Density': self.currents_TR})
-            self.VAC_dataframe = self.VAC_dataframe.groupby('Current Density', as_index=False)['Potential'].mean()
+        self.VAC_dataframe = self.VAC_dataframe.groupby('Current Density', as_index=False)['Potential'].mean()
             
-            self.JR_dataframe = pd.DataFrame({'Resistance':self.rs,
+        self.JR_dataframe = pd.DataFrame({'Resistance':self.rs,
                                                 'Current Density': self.currents_ZZ})
-            self.JR_dataframe = self.JR_dataframe.groupby('Current Density', as_index=False)['Resistance'].mean()
+        self.JR_dataframe = self.JR_dataframe.groupby('Current Density', as_index=False)['Resistance'].mean()
             
-            self.for_computation = pd.DataFrame(
+        self.for_computation = pd.DataFrame(
                                                 {
                                                 'Potential': self.VAC_dataframe['Potential'],
                                                 'Current Density VAC': self.VAC_dataframe['Current Density'],
@@ -122,7 +122,9 @@ class Measurement:
                                                 'Current Density JR': self.JR_dataframe['Current Density']
                                                 }
                                                 )
-            self.for_computation = self.for_computation[self.for_computation['Current Density VAC'] == self.for_computation['Current Density JR']]
-            self.for_computation['Overpotential'] = self.for_computation['Potential'] - 4*self.for_computation['Current Density JR']*self.for_computation['Resistance']
-            self.overpotential = list(self.for_computation['Overpotential'])
+        self.for_computation = self.for_computation[self.for_computation['Current Density VAC'] == self.for_computation['Current Density JR']]
+        self.for_computation['Overpotential'] = self.for_computation['Potential'] - 4*self.for_computation['Current Density JR']*self.for_computation['Resistance'] - 1.23
+        self.overpotential = list(self.for_computation['Overpotential'])
+        print(len(self.overpotential))
+        self.slope = np.polyfit(np.log10(self.for_computation['Current Density JR']), self.for_computation['Overpotential'], 1)[0]
         
