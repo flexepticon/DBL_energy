@@ -22,6 +22,7 @@ class Measurement:
         self.currents_ZZ = []
         self.currents_TR = []
         self.missing = []
+
         for file in os.listdir(self.folder_path):
             if file.endswith('.csv'):
                 file_path = os.path.join(self.folder_path, file)
@@ -46,7 +47,7 @@ class Measurement:
                     creation_time = datetime.strptime(datetime_str, "%Y_%m_%d_%H_%M_%S")
                 if creation_time > self.start_time and creation_time < self.end_time:
                     if 'TRScan' in file and 'CP' in file:
-                        self.TRScans.append(pd.read_csv(file_path, names = ['time', 'potential', 'current']))
+                        self.TRScans.append(pd.read_csv(file_path, names = ['time', 'V', 'I']))
                         TR_match1 = re.search(r' (\d+(\.\d+)?)A', file)
                         TR_match2 = re.search(r'_(\d+(\.\.\d+)?)A', file)
                         TR_match3 = re.search(r'_(\d+(\.\d+)?)A', file)
@@ -67,8 +68,8 @@ class Measurement:
                         else:
                             self.missing.append(file)
                     if "EIS" in file and file.endswith("Acm2.csv"):
-                        self.ZZplots.append(pd.read_csv(file_path, names = ['1', '2', '3']))
-                        self.ZZplots[-1]['2'] *= -1
+                        self.ZZplots.append(pd.read_csv(file_path, names = ['Zr', 'Zi', '3']))
+                        self.ZZplots[-1]['Zi'] *= -1
                         match1 = re.search(r'EIS (\d+(\.\d+)?)A', file)
                         match2 = re.search(r'EIS(\d+(\.\d+)?)A', file)
                         match3 = re.search(r'_(\d+(\.\d+)?)A', file)
@@ -86,8 +87,8 @@ class Measurement:
             self.vs = []
             self.js = []
             for trscan in self.TRScans:
-                J = np.mean(trscan['current'][-50:])
-                V = np.mean(trscan['potential'][-50:])
+                J = np.mean(trscan['I'][-50:])
+                V = np.mean(trscan['V'][-50:])
                 self.js.append(J)
                 self.vs.append(V)
             self.js = np.array(self.js)
@@ -96,9 +97,9 @@ class Measurement:
             self.rs = []
             
             for zzplot in self.ZZplots:
-                for i in range(zzplot['1'].size-1):
-                    if zzplot['2'][i]*zzplot['2'][i+1] < 0:
-                        pol = np.polyfit([zzplot['1'][i], zzplot['1'][i+1]], [zzplot['2'][i],zzplot['2'][i+1]], 1)
+                for i in range(zzplot['Zr'].size-1):
+                    if zzplot['Zi'][i]*zzplot['Zi'][i+1] < 0:
+                        pol = np.polyfit([zzplot['Zr'][i], zzplot['Zr'][i+1]], [zzplot['Zi'][i],zzplot['Zi'][i+1]], 1)
                         res = fsolve(lambda x: np.polyval(pol, x), [0])[0]
                         res = max(res, 0)
                         self.rs.append(res)
@@ -106,25 +107,24 @@ class Measurement:
             self.rs = np.array(self.rs)
 
 
-        self.VAC_dataframe = pd.DataFrame({'Potential':self.vs,
-                                                'Current Density': self.currents_TR})
-        self.VAC_dataframe = self.VAC_dataframe.groupby('Current Density', as_index=False)['Potential'].mean()
+        self.VAC_dataframe = pd.DataFrame({'V':self.vs,
+                                            'J': self.currents_TR})
+        self.VAC_dataframe = self.VAC_dataframe.groupby('J', as_index=False)['V'].mean()
             
-        self.JR_dataframe = pd.DataFrame({'Resistance':self.rs,
-                                                'Current Density': self.currents_ZZ})
-        self.JR_dataframe = self.JR_dataframe.groupby('Current Density', as_index=False)['Resistance'].mean()
+        self.JR_dataframe = pd.DataFrame({'R':self.rs,
+                                                'J': self.currents_ZZ})
+        self.JR_dataframe = self.JR_dataframe.groupby('J', as_index=False)['R'].mean()
             
         self.for_computation = pd.DataFrame(
                                                 {
-                                                'Potential': self.VAC_dataframe['Potential'],
-                                                'Current Density VAC': self.VAC_dataframe['Current Density'],
-                                                'Resistance':self.JR_dataframe['Resistance'],
-                                                'Current Density JR': self.JR_dataframe['Current Density']
+                                                'V': self.VAC_dataframe['V'],
+                                                'J VAC': self.VAC_dataframe['J'],
+                                                'R':self.JR_dataframe['R'],
+                                                'J JR': self.JR_dataframe['J']
                                                 }
                                                 )
-        self.for_computation = self.for_computation[self.for_computation['Current Density VAC'] == self.for_computation['Current Density JR']]
-        self.for_computation['Overpotential'] = self.for_computation['Potential'] - 4*self.for_computation['Current Density JR']*self.for_computation['Resistance'] - 1.23
+        self.for_computation = self.for_computation[self.for_computation['J VAC'] == self.for_computation['J JR']]
+        self.for_computation['Overpotential'] = self.for_computation['V'] - 4*self.for_computation['J JR']*self.for_computation['R'] - 1.23
         self.overpotential = list(self.for_computation['Overpotential'])
-        print(len(self.overpotential))
-        self.slope = np.polyfit(np.log10(self.for_computation['Current Density JR']), self.for_computation['Overpotential'], 1)[0]
+        self.slope = np.polyfit(np.log10(self.for_computation['J JR']), self.for_computation['Overpotential'], 1)[0]
         
