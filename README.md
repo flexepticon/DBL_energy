@@ -1,4 +1,4 @@
-Adding new data:\т
+Adding new data:\n
 1.Clone the repository
 2.Cops the folder with measurements to the repository
 3.Commit and push changes
