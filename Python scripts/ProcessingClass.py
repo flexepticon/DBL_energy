@@ -202,7 +202,7 @@ class Measurement:
             self.for_computation['Overpotential'] = self.for_computation['V'] - 4 * self.for_computation['J JR'] * self.for_computation['R'] - 1.23
 
             # Store overpotential values and slope of log(current) vs overpotential
-            self.overpotential = list(self.for_computation['Overpotential'])
+            self.overpotential = np.array(list(self.for_computation['Overpotential']))
             self.slope = np.polyfit(np.log10(self.for_computation['J JR']), self.for_computation['Overpotential'], 1)[0]
 
             for plot_type in plot_types:
