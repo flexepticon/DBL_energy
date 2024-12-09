@@ -68,6 +68,11 @@ class Measurement:
         self.currents_TR = []   # List of currents for TR scans
         self.missing = []       # List of files with missing current data
 
+
+
+
+
+
         # Process all files in the folder
         for file in os.listdir(self.folder_path):
             if file.endswith('.csv'):
@@ -264,7 +269,7 @@ class Measurement:
                     os.makedirs(os.path.dirname(file_path_write), exist_ok=True)
                         
                     # Write the data to the file
-                    labels = ['J', 'V_CORR']
+                    labels = ['J', 'V']
                     with open(file_path_write, 'w') as file:
                         # Write the column labels, joined by ';'
                         file.write(';'.join(labels) + '\n')
@@ -275,10 +280,9 @@ class Measurement:
             
 class Result:
     def __init__(self, foldername):
-        self.VAC_dataframe = pd.read_csv('../Final Data/'+foldername+'/VAC_plot.txt')
-        self.tafel_dataframe = pd.read_csv('../Final Data/'+foldername+'/TAFEL_plot.txt')
-        self.VAC_corr_dataframe = pd.read_csv('../Final Data/'+foldername+'/VAC_CORR_plot.txt')
-        self.JR_dataframe = pd.read_csv('../Final Data/'+foldername+'/JR_plot.txt')
-        self.overpotential = self.VAC_corr_dataframe['V_CORR'] - 1.23
+        self.VAC_dataframe = pd.read_csv('../Final Data/'+foldername+'/VAC_plot.txt',  delimiter=';')
+        self.JR_dataframe = pd.read_csv('../Final Data/'+foldername+'/JR_plot.txt',  delimiter=';')
+        self.VAC_corr_dataframe = pd.read_csv('../Final Data/'+foldername+'/VAC_CORR_plot.txt', delimiter=';')
+        self.overpotential = self.VAC_corr_dataframe['V'].values.copy() - 1.23
 
-        
+        self.tafel_dataframe = pd.read_csv
