@@ -217,11 +217,11 @@ class Measurement:
                     labels = ['J', 'V']
                     with open(file_path_write, 'w') as file:
                         # Write the column labels, joined by ';'
-                        file.write(';'.join(labels) + ';')
+                        file.write(';'.join(labels) + '\n')
                         
                         # Write each row, aligning elements from the VAC DataFrame columns
                         for j_, v_ in zip(self.VAC_dataframe['J'], self.VAC_dataframe['V']):
-                            file.write(f"{j_};{v_};")
+                            file.write(f"{j_};{v_}\n")
                 elif plot_type == 'JR':
                     # Define the file path
                     file_path_write = f'../Final Data/{foldername}/{plot_type}_plot.txt'
@@ -250,11 +250,11 @@ class Measurement:
                     labels = ['logJ', 'V_CORR']
                     with open(file_path_write, 'w') as file:
                         # Write the column labels, joined by ';'
-                        file.write(';'.join(labels) + ';\n')
+                        file.write(';'.join(labels) + '\n')
                             
                         # Write each row, aligning elements from the VAC DataFrame columns
                         for j_, v_ in zip(np.log10(self.JR_dataframe['J']), self.overpotential):
-                            file.write(f"{j_};{v_};\n")
+                            file.write(f"{j_};{v_}\n")
 
                 elif plot_type == 'VAC_CORR':
                     # Define the file path
@@ -264,12 +264,21 @@ class Measurement:
                     os.makedirs(os.path.dirname(file_path_write), exist_ok=True)
                         
                     # Write the data to the file
-                    labels = ['J', 'VAC_CORR']
+                    labels = ['J', 'V_CORR']
                     with open(file_path_write, 'w') as file:
                         # Write the column labels, joined by ';'
-                        file.write(';'.join(labels) + ';\n')
+                        file.write(';'.join(labels) + '\n')
                             
                         # Write each row, aligning elements from the VAC DataFrame columns
                         for j_, v_ in zip(self.JR_dataframe['J'], self.overpotential ):
-                            file.write(f"{j_};{v_ + 1.23};\n")
+                            file.write(f"{j_};{v_ + 1.23}\n")
             
+class Result:
+    def __init__(self, foldername):
+        self.VAC_dataframe = pd.read_csv('../Final Data/'+foldername+'/VAC_plot.txt')
+        self.tafel_dataframe = pd.read_csv('../Final Data/'+foldername+'/TAFEL_plot.txt')
+        self.VAC_corr_dataframe = pd.read_csv('../Final Data/'+foldername+'/VAC_CORR_plot.txt')
+        self.JR_dataframe = pd.read_csv('../Final Data/'+foldername+'/JR_plot.txt')
+        self.overpotential = self.VAC_corr_dataframe['V_CORR'] - 1.23
+
+        
