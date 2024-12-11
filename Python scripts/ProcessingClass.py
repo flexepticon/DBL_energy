@@ -285,4 +285,8 @@ class Result:
         self.VAC_corr_dataframe = pd.read_csv('../Final Data/'+foldername+'/VAC_CORR_plot.txt', delimiter=';')
         self.overpotential = self.VAC_corr_dataframe['V'].values.copy() - 1.23
 
-        self.tafel_dataframe = pd.read_csv
+        self.tafel_dataframe = pd.read_csv('../Final Data/'+foldername+'/TAFEL_plot.txt',  delimiter=';')
+        
+        self.slope = np.polyfit(np.log10(self.VAC_corr_dataframe['J']), self.overpotential, 1)[0]
+
+        
